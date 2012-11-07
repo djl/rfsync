@@ -50,6 +50,10 @@ Each section can contain the following options:
 
   Delete extraneous files from destination directories.
 
+* `require_destination` (boolean, default: False)
+
+  Fail if the destination does not already exist.
+
 
 
 EXAMPLE

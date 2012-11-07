@@ -66,6 +66,11 @@ class Backup(object):
         self.source = [expand(x.strip()) for x in self.source.split(',')]
 
     def run(self):
+        # check if destination is required
+        rdst = getattr(self, 'require_destination', False)
+        if rdst and not os.path.isdir(self.destination):
+            error('Destination directory "%s" not found.' % self.destination)
+
         cmds = ['rsync', '-a', '-v', '-z']
         if self.delete:
             cmds.append('--delete')
