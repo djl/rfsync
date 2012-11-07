@@ -1,0 +1,115 @@
+#!/usr/bin/env python
+"""
+Usage: scully [<backup>]
+"""
+import os
+import subprocess
+import sys
+
+try:
+    import configparser
+except ImportError:
+    import ConfigParser as configparser
+
+
+FILE = '~/.scully'
+
+
+def error(msg, exitcode=1):
+    """
+    Print ``msg`` to stderr and exit with ``exitcode``.
+    """
+    msg = os.path.basename(sys.argv[0]) + ': ' + msg
+    sys.stderr.write(msg + '\n')
+    sys.exit(exitcode)
+
+
+def expand(fn):
+    """
+    Fully expand a path, preserving trailing slashes
+    """
+    slash = fn[-1] == '/'
+    fn = os.path.expandvars(fn)
+    fn = os.path.expanduser(fn)
+    fn = os.path.abspath(fn)
+    if slash and fn[-1] != '/':
+        fn += '/'
+    return fn
+
+
+class Backup(object):
+
+    REQUIRED_OPTIONS = ['source', 'destination']
+
+    def __init__(self, name, source, destination, delete=False, exclude=None):
+        self.name = name
+        self.source = source
+        self.destination = destination
+        self.delete = delete
+        self.exclude = exclude
+        self.validate_exclude()
+        self.validate_sources()
+
+    def validate_exclude(self):
+        exclude = []
+        if hasattr(self, 'exclude'):
+            for fn in self.exclude.split(','):
+                exclude.append(fn.strip())
+        self.exclude = exclude
+
+    def validate_options(self):
+        for option in self.REQUIRED_OPTIONS:
+            if not getattr(self, option, None):
+                error("Backup '%s' is missing option '%s'" % (self.name, option))
+
+    def validate_sources(self):
+        if not self.source:
+            error("No source specified for backup '%s'" % self.backup)
+        self.sources = [expand(x.strip()) for x in self.source.split(',')]
+
+    def run(self):
+        cmds = ['rsync', '-a', '-v', '-z']
+
+        if self.delete:
+            cmds.append('--delete')
+
+        cmds += self.sources
+
+        for exclude in self.exclude:
+            cmds += ['--exclude', exclude]
+
+        cmds.append(expand(self.destination))
+
+        # print cmds
+        proc = subprocess.Popen(cmds)
+        proc.communicate()
+
+
+def main():
+    config = configparser.ConfigParser()
+
+    try:
+        config.readfp(open(expand(FILE)))
+    except IOError:
+        error("Couldn't read your config file.")
+
+
+    # list all backups
+    if len(sys.argv) == 1:
+        sys.stdout.write('\n'.join(sorted(config.sections())) + '\n')
+        sys.exit(0)
+
+    # does the backup exist?
+    try:
+        options = dict(config.items(sys.argv[1]))
+        options['name'] = sys.argv[1]
+    except configparser.NoSectionError:
+        error("Invalid backup '%s'" % sys.argv[1])
+
+    # backup is good. let's do it
+    backup = Backup(**options)
+    backup.run()
+
+
+if __name__ == '__main__':
+    main()
