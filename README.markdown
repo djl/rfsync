@@ -1,7 +1,7 @@
 scully
 ------
 
-`scully` keeps your data in sync.
+`scully` keeps your files in sync.
 
 Think of her as the more conservative, skeptical partner of
 [mulder](https://github.com/djl/mulder).
@@ -28,7 +28,7 @@ Run a backup with `scully <backup>`
 SETUP
 -----
 
-`scully` reads from an INI-style config file called ~/.scully. Each
+`scully` reads from an INI-style config file called `~/.scully`. Each
 section of this file corresponds to a single backup.
 
 Each section can contain the following options:
@@ -46,11 +46,11 @@ Each section can contain the following options:
 
   A comma-separated list of files to be ignored from `source`.
 
-* `delete` (boolean, default: False)
+* `delete` (boolean, default: false)
 
   Delete extraneous files from destination directories.
 
-* `require_destination` (boolean, default: False)
+* `require_destination` (boolean, default: false)
 
   Fail if the destination does not already exist.
 
@@ -62,6 +62,7 @@ EXAMPLE
     [documents]
     source = ~/Documents
     destination = /mnt/backups/Documents
+    require_destination = True
 
     [misc]
     source = ~/var/log, ~/var/mail
