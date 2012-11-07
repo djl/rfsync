@@ -41,46 +41,42 @@ class Backup(object):
 
     REQUIRED_OPTIONS = ['source', 'destination']
 
-    def __init__(self, name, source, destination, delete=False, exclude=None):
-        self.name = name
+    def __init__(self, source, destination, **kwargs):
         self.source = source
         self.destination = destination
-        self.delete = delete
-        self.exclude = exclude
+
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
         self.validate_exclude()
-        self.validate_sources()
+        self.validate_source()
 
     def validate_exclude(self):
-        exclude = []
         if hasattr(self, 'exclude'):
-            for fn in self.exclude.split(','):
-                exclude.append(fn.strip())
-        self.exclude = exclude
+            self.exclude = [x.strip() for x in self.exclude.split(',')]
 
     def validate_options(self):
         for option in self.REQUIRED_OPTIONS:
             if not getattr(self, option, None):
-                error("Backup '%s' is missing option '%s'" % (self.name, option))
+                error("Missing required option '%s'" % option)
 
-    def validate_sources(self):
+    def validate_source(self):
         if not self.source:
             error("No source specified for backup '%s'" % self.backup)
-        self.sources = [expand(x.strip()) for x in self.source.split(',')]
+        self.source = [expand(x.strip()) for x in self.source.split(',')]
 
     def run(self):
         cmds = ['rsync', '-a', '-v', '-z']
-
         if self.delete:
             cmds.append('--delete')
 
-        cmds += self.sources
+        cmds += self.source
 
         for exclude in self.exclude:
             cmds += ['--exclude', exclude]
 
         cmds.append(expand(self.destination))
 
-        # print cmds
         proc = subprocess.Popen(cmds)
         proc.communicate()
 
@@ -102,7 +98,6 @@ def main():
     # does the backup exist?
     try:
         options = dict(config.items(sys.argv[1]))
-        options['name'] = sys.argv[1]
     except configparser.NoSectionError:
         error("Invalid backup '%s'" % sys.argv[1])
 
