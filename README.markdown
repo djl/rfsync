@@ -46,11 +46,11 @@ Each section can contain the following options:
 
   A comma-separated list of files to be ignored from `source`.
 
-* `delete` (boolean, default: false)
+* `delete` (optional, boolean, default: false)
 
   Delete extraneous files from destination directories.
 
-* `require_destination` (boolean, default: false)
+* `require_destination` (optional, boolean, default: false)
 
   Fail if the destination does not already exist.
 
