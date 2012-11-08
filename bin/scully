@@ -41,13 +41,11 @@ class Backup(object):
 
     REQUIRED_OPTIONS = ['source', 'destination']
 
-    def __init__(self, source, destination, **kwargs):
-        self.source = source
-        self.destination = destination
-
+    def __init__(self, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
 
+        self.validate_options()
         self.validate_exclude()
         self.validate_source()
 
@@ -93,7 +91,6 @@ def main():
         config.readfp(open(expand(FILE)))
     except IOError:
         error("Couldn't read your config file.")
-
 
     # list all backups
     if len(sys.argv) == 1:
