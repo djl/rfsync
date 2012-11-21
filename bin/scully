@@ -56,7 +56,7 @@ class Backup(object):
     def validate_options(self):
         for option in self.REQUIRED_OPTIONS:
             if not getattr(self, option, None):
-                error("Missing required option '%s'" % option)
+                error("Backup '%s' missing required option '%s'." % (self.backup, option))
 
     def validate_source(self):
         if not self.source:
@@ -100,8 +100,9 @@ def main():
     # does the backup exist?
     try:
         options = dict(config.items(sys.argv[1]))
+        options['backup'] = sys.argv[1]
     except configparser.NoSectionError:
-        error("Invalid backup '%s'" % sys.argv[1])
+        error("Invalid backup '%s'." % sys.argv[1])
 
     # backup is good. let's do it
     backup = Backup(**options)
