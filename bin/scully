@@ -52,6 +52,8 @@ class Backup(object):
     def validate_exclude(self):
         if hasattr(self, 'exclude'):
             self.exclude = [x.strip() for x in self.exclude.split(',')]
+        else:
+            self.exclude = []
 
     def validate_options(self):
         for option in self.REQUIRED_OPTIONS:
