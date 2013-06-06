@@ -24,6 +24,11 @@ Run a backup with `scully <backup>`
     $ scully documents
 
 
+Use the `-n` or `--dry-run` flag to see what would be synced:
+
+    $ scully -n documents
+
+
 
 SETUP
 -----

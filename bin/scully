@@ -75,6 +75,9 @@ class Backup(object):
         if self.delete:
             cmds.append('--delete')
 
+        if self.dry_run:
+            cmds.append('--dry-run')
+
         cmds += self.source
 
         for exclude in self.exclude:
@@ -99,10 +102,18 @@ def main():
         sys.stdout.write('\n'.join(sorted(config.sections())) + '\n')
         sys.exit(0)
 
+    # are we doing a dry run?
+    if sys.argv[1] in ['-n', '--dry-run']:
+        dry_run = True
+        del sys.argv[1]
+    else:
+        dry_run = False
+
     # does the backup exist?
     try:
         options = dict(config.items(sys.argv[1]))
         options['backup'] = sys.argv[1]
+        options['dry_run'] = dry_run
     except configparser.NoSectionError:
         error("Invalid backup '%s'." % sys.argv[1])
 
