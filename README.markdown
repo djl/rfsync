@@ -39,23 +39,23 @@ section of this file corresponds to a single backup.
 Each section can contain the following options:
 
 
-* `source`
+* `src`
 
   A comma-separated list of files and directories to be synced.
 
-* `destination`
+* `dest`
 
   Where the sources should be synced to.
 
 * `exclude` (optional)
 
-  A comma-separated list of files to be ignored from `source`.
+  A comma-separated list of files to be ignored from `src`.
 
 * `delete` (optional, boolean, default: false)
 
   Delete extraneous files from destination directories.
 
-* `require_destination` (optional, boolean, default: false)
+* `require_dest` (optional, boolean, default: false)
 
   Fail if the destination does not already exist.
 
@@ -65,17 +65,17 @@ EXAMPLE
 -------
 
     [documents]
-    source = ~/Documents
-    destination = /mnt/backups/Documents
-    require_destination = True
+    src = ~/Documents
+    dest = /mnt/backups/Documents
+    require_dest = True
 
     [misc]
-    source = ~/var/log, ~/var/mail
-    destination = user@example.com:backups/misc
+    src = ~/var/log, ~/var/mail
+    dest = user@example.com:backups/misc
     exclude = ~/var/tmp
     delete = true
 
     [work]
-    source = ~/Work
-    destination = /mnt/backups/Work
+    src = ~/Work
+    dest = /mnt/backups/Work
     exclude = ~/Work/secret_project

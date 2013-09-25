@@ -39,51 +39,66 @@ def expand(fn):
 
 class Backup(object):
 
-    REQUIRED_OPTIONS = ['source', 'destination']
+    REQUIRED_OPTIONS = ['src', 'dest']
 
-    def __init__(self, **kwargs):
-        for k, v in kwargs.items():
-            setattr(self, k, v)
+    def __init__(self, name, config, dry_run=False):
+        self.name = name
+        self.config = config
+        self.dry_run = dry_run
 
         self.validate_options()
         self.validate_exclude()
-        self.validate_source()
+        self.validate_src()
+        self.validate_dest()
+
+    def _expand_paths(self, paths):
+        return [expand(p.strip()) for p in paths]
 
     def validate_exclude(self):
-        if hasattr(self, 'exclude'):
-            self.exclude = [x.strip() for x in self.exclude.split(',')]
+        if self.config.has_option(self.name, 'exclude'):
+            self.exclude = [x.strip() for x in self.config.get(self.name, 'exclude').split(',')]
         else:
             self.exclude = []
 
     def validate_options(self):
         for option in self.REQUIRED_OPTIONS:
-            if not getattr(self, option, None):
-                error("Backup '%s' missing required option '%s'." % (self.backup, option))
+            if not self.config.has_option(self.name, option):
+                error("Backup '%s' missing required option '%s'." % (self.name, option))
 
-    def validate_source(self):
-        if not self.source:
-            error("No source specified for backup '%s'" % self.backup)
-        self.source = [expand(x.strip()) for x in self.source.split(',')]
+    def validate_src(self):
+        src = self.config.get(self.name, 'src')
+        self.src = [expand(x.strip()) for x in src.split(',')]
+
+    def validate_dest(self):
+        self.dest = expand(self.config.get(self.name, 'dest'))
 
     def run(self):
-        # check if destination is required
-        rdst = getattr(self, 'require_destination', False)
-        if rdst and not os.path.isdir(self.destination):
-            error('Destination directory "%s" not found.' % self.destination)
+        # check if dest is required
+        try:
+            rdst = self.config.getboolean(self.name, 'require_dest')
+            if rdst and not os.path.isdir(self.dest):
+                error('Destination directory "%s" not found.' % self.dest)
+        except configparser.NoOptionError:
+            pass
 
         cmds = ['rsync', '-a', '-v', '-z']
-        if self.delete:
-            cmds.append('--delete')
+
+        # delete files?
+        try:
+            if self.config.getboolean(self.name, 'delete'):
+                cmds.append('--delete')
+        except configparser.NoOptionError:
+            pass
 
         if self.dry_run:
             cmds.append('--dry-run')
 
-        cmds += self.source
+        cmds += self.src
 
         for exclude in self.exclude:
             cmds += ['--exclude', exclude]
 
-        cmds.append(expand(self.destination))
+        cmds.append(expand(self.dest))
 
         proc = subprocess.Popen(cmds)
         proc.communicate()
@@ -110,15 +125,12 @@ def main():
         dry_run = False
 
     # does the backup exist?
-    try:
-        options = dict(config.items(sys.argv[1]))
-        options['backup'] = sys.argv[1]
-        options['dry_run'] = dry_run
-    except configparser.NoSectionError:
+    if not config.has_section(sys.argv[1]):
         error("Invalid backup '%s'." % sys.argv[1])
 
+
     # backup is good. let's do it
-    backup = Backup(**options)
+    backup = Backup(sys.argv[1], config, dry_run)
     backup.run()
 
 
