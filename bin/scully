@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Usage: scully [<backup>]
+Usage: scully [RSYNCOPTS] [<backup>]
 """
 import os
 import subprocess
@@ -40,11 +40,12 @@ def expand(fn):
 class Backup(object):
 
     REQUIRED_OPTIONS = ['src', 'dest']
+    RSYNC_OPTS = ['-a' '-v' '-z']
 
-    def __init__(self, name, config, dry_run=False):
+    def __init__(self, name, config, rsync_opts=None):
         self.name = name
         self.config = config
-        self.dry_run = dry_run
+        self.rsync_opts = rsync_opts or self.RSYNC_OPTS
 
         self.validate_options()
         self.validate_exclude()
@@ -81,7 +82,7 @@ class Backup(object):
         except configparser.NoOptionError:
             pass
 
-        cmds = ['rsync', '-a', '-v', '-z']
+        cmds = ['rsync'] + self.rsync_opts
 
         # delete files?
         try:
@@ -89,9 +90,6 @@ class Backup(object):
                 cmds.append('--delete')
         except configparser.NoOptionError:
             pass
-
-        if self.dry_run:
-            cmds.append('--dry-run')
 
         cmds += self.src
 
@@ -117,20 +115,16 @@ def main():
         sys.stdout.write('\n'.join(sorted(config.sections())) + '\n')
         sys.exit(0)
 
-    # are we doing a dry run?
-    if sys.argv[1] in ['-n', '--dry-run']:
-        dry_run = True
-        del sys.argv[1]
-    else:
-        dry_run = False
+    backup = sys.argv.pop()
+    opts = sys.argv[1:]
 
     # does the backup exist?
-    if not config.has_section(sys.argv[1]):
-        error("Invalid backup '%s'." % sys.argv[1])
+    if not config.has_section(backup):
+        error("Invalid backup '%s'." % backup)
 
 
     # backup is good. let's do it
-    backup = Backup(sys.argv[1], config, dry_run)
+    backup = Backup(backup, config, opts)
     backup.run()
 
 

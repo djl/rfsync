@@ -24,9 +24,14 @@ Run a backup with `scully <backup>`
     $ scully documents
 
 
-Use the `-n` or `--dry-run` flag to see what would be synced:
+`scully` will also pass along any options to rsync, allowing dry runs
+and such:
 
+    # check what's going to happen
     $ scully -n documents
+
+    # shhh!
+    $ scully -q documents
 
 
 
