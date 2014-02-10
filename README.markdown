@@ -33,6 +33,9 @@ and such:
     # shhh!
     $ scully -q documents
 
+    # loudly delete stuff
+    $ scully -v -d documents
+
 
 
 SETUP
@@ -56,13 +59,10 @@ Each section can contain the following options:
 
   A comma-separated list of files to be ignored from `src`.
 
-* `delete` (optional, boolean, default: false)
-
-  Delete extraneous files from destination directories.
-
 * `require_dest` (optional, boolean, default: false)
 
-  Fail if the destination does not already exist.
+  Fail if the destination does not already exist. This is ignored for
+  remote destinations
 
 
 
@@ -78,7 +78,6 @@ EXAMPLE
     src = ~/var/log, ~/var/mail
     dest = user@example.com:backups/misc
     exclude = ~/var/tmp
-    delete = true
 
     [work]
     src = ~/Work

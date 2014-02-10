@@ -40,12 +40,12 @@ def expand(fn):
 class Backup(object):
 
     REQUIRED_OPTIONS = ['src', 'dest']
-    RSYNC_OPTS = ['-a' '-v' '-z']
+    DEFAULT_RSYNC_OPTS = ['-a']
 
     def __init__(self, name, config, rsync_opts=None):
         self.name = name
         self.config = config
-        self.rsync_opts = rsync_opts or self.RSYNC_OPTS
+        self.rsync_opts = rsync_opts
 
         self.validate_options()
         self.validate_exclude()
@@ -86,22 +86,13 @@ class Backup(object):
         if rdst and not os.path.isdir(self.dest) and not is_remote:
             error('Destination directory "%s" not found.' % self.dest)
 
-        cmds = ['rsync'] + self.rsync_opts
-
-        # delete files?
-        try:
-            if self.config.getboolean(self.name, 'delete'):
-                cmds.append('--delete')
-        except configparser.NoOptionError:
-            pass
-
-        cmds += self.src
+        cmds = ['rsync'] + self.DEFAULT_RSYNC_OPTS + self.rsync_opts
 
         for exclude in self.exclude:
             cmds += ['--exclude', exclude]
 
+        cmds += self.src
         cmds.append(expand(self.dest))
-
         proc = subprocess.Popen(cmds)
         proc.communicate()
 
