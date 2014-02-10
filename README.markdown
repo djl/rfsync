@@ -83,3 +83,10 @@ EXAMPLE
     src = ~/Work
     dest = /mnt/backups/Work
     exclude = ~/Work/secret_project
+
+
+
+TODO
+----
+
+* Rewrite in shell?
