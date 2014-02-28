@@ -1,127 +1,30 @@
-#!/usr/bin/env python
-"""
-Usage: scully [RSYNCOPTS] [<backup>]
-"""
-import os
-import subprocess
-import sys
+#!/bin/bash
+# Usage: scully [RSYNCOPTS] [<backup>]
+PROGNAME="$(basename $0)"
+BACKUP_DIR="$HOME/.scully"
 
-try:
-    import configparser
-except ImportError:
-    import ConfigParser as configparser
+abort() {
+  echo "$PROGNAME: $1" >&2
+  exit 1
+}
 
+if [ $# -eq 0 ]; then
+  find "$BACKUP_DIR" -type f | xargs basename
+  exit 0
+fi
 
-FILE = '~/.scully'
+BACKUP="${!#}"
 
+if [ ! -f "$BACKUP_DIR/$BACKUP" ]; then
+  abort "Unknown backup '$BACKUP'"
+fi
 
-def error(msg, exitcode=1):
-    """
-    Print ``msg`` to stderr and exit with ``exitcode``.
-    """
-    msg = os.path.basename(sys.argv[0]) + ': ' + msg
-    sys.stderr.write(msg + '\n')
-    sys.exit(exitcode)
+source "$BACKUP_DIR/$BACKUP" > /dev/null 2>&1
 
+if [ -n "$SCULLY_REQUIRE_DEST" -a ! -d "$SCULLY_DEST" ]; then
+  abort "Destination directory '$SCULLY_DEST' not found."
+fi
 
-def expand(fn):
-    """
-    Fully expand a path, preserving trailing slashes
-    """
-    slash = fn[-1] == '/'
-    fn = os.path.expandvars(fn)
-    fn = os.path.expanduser(fn)
-    fn = os.path.abspath(fn)
-    if slash and fn[-1] != '/':
-        fn += '/'
-    return fn
+exclude=$(printf " --exclude %s" "${SCULLY_EXCLUDE[@]}")
 
-
-class Backup(object):
-
-    REQUIRED_OPTIONS = ['src', 'dest']
-    DEFAULT_RSYNC_OPTS = ['-a']
-
-    def __init__(self, name, config, rsync_opts=None):
-        self.name = name
-        self.config = config
-        self.rsync_opts = rsync_opts
-
-        self.validate_options()
-        self.validate_exclude()
-        self.validate_src()
-        self.validate_dest()
-
-    def _expand_paths(self, paths):
-        return [expand(p.strip()) for p in paths]
-
-    def validate_exclude(self):
-        if self.config.has_option(self.name, 'exclude'):
-            self.exclude = [x.strip() for x in self.config.get(self.name, 'exclude').split(',')]
-        else:
-            self.exclude = []
-
-    def validate_options(self):
-        for option in self.REQUIRED_OPTIONS:
-            if not self.config.has_option(self.name, option):
-                error("Backup '%s' missing required option '%s'." % (self.name, option))
-
-    def validate_src(self):
-        src = self.config.get(self.name, 'src')
-        self.src = [expand(x.strip()) for x in src.split(',')]
-
-    def validate_dest(self):
-        self.dest = expand(self.config.get(self.name, 'dest'))
-
-    def run(self):
-        # check if dest is required
-        try:
-            rdst = self.config.getboolean(self.name, 'require_dest')
-        except configparser.NoOptionError:
-            pass
-
-        # non-absolute paths are treated as remote so we skip
-        # the require_dest check
-        is_remote = self.dest.startswith('/')
-        if rdst and not os.path.isdir(self.dest) and not is_remote:
-            error('Destination directory "%s" not found.' % self.dest)
-
-        cmds = ['rsync'] + self.DEFAULT_RSYNC_OPTS + self.rsync_opts
-
-        for exclude in self.exclude:
-            cmds += ['--exclude', exclude]
-
-        cmds += self.src
-        cmds.append(expand(self.dest))
-        proc = subprocess.Popen(cmds)
-        proc.communicate()
-
-
-def main():
-    config = configparser.ConfigParser()
-
-    try:
-        config.readfp(open(expand(FILE)))
-    except IOError:
-        error("Couldn't read your config file.")
-
-    # list all backups
-    if len(sys.argv) == 1:
-        sys.stdout.write('\n'.join(sorted(config.sections())) + '\n')
-        sys.exit(0)
-
-    backup = sys.argv.pop()
-    opts = sys.argv[1:]
-
-    # does the backup exist?
-    if not config.has_section(backup):
-        error("Invalid backup '%s'." % backup)
-
-
-    # backup is good. let's do it
-    backup = Backup(backup, config, opts)
-    backup.run()
-
-
-if __name__ == '__main__':
-    main()
+rsync -a ${@:1:$#-1} ${exclude[@]} ${SCULLY_SRC[@]} $SCULLY_DEST
