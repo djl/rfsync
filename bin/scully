@@ -25,6 +25,8 @@ if [ -n "$SCULLY_REQUIRE_DEST" -a ! -d "$SCULLY_DEST" ]; then
   abort "Destination directory '$SCULLY_DEST' not found."
 fi
 
-exclude=$(printf " --exclude %s" "${SCULLY_EXCLUDE[@]}")
+if [ -n "$SCULLY_EXCLUDE" ]; then
+  exclude=$(printf " --exclude %s" "${SCULLY_EXCLUDE[@]}")
+fi
 
 rsync -a ${@:1:$#-1} ${exclude[@]} ${SCULLY_SRC[@]} $SCULLY_DEST
