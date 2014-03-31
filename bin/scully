@@ -21,12 +21,13 @@ fi
 
 source "$BACKUP_DIR/$BACKUP" > /dev/null 2>&1
 
-if [ -n "$SCULLY_REQUIRE_DEST" -a ! -d "$SCULLY_DEST" ]; then
-  abort "Destination directory '$SCULLY_DEST' not found."
-fi
-
 if [ -n "$SCULLY_EXCLUDE" ]; then
   exclude=$(printf " --exclude %s" "${SCULLY_EXCLUDE[@]}")
 fi
 
-rsync -a ${@:1:$#-1} ${exclude[@]} ${SCULLY_SRC[@]} $SCULLY_DEST
+for d in ${SCULLY_DEST[@]}; do
+  if [ -n "$SCULLY_REQUIRE_DEST" -a ! -d "$d" ]; then
+    abort "Destination directory '$d' not found."
+  fi
+  rsync -a ${@:1:$#-1} ${exclude[@]} ${SCULLY_SRC[@]} $d
+done
