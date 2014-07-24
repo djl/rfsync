@@ -1,7 +1,7 @@
 scully
 ------
 
-`scully` keeps your files in (r)sync.
+`scully` keeps your files in sync.
 
 Think of her as the more conservative, skeptical partner of
 [mulder](https://github.com/djl/mulder).
@@ -41,47 +41,45 @@ and such:
 SETUP
 -----
 
-Your backup configs are kept in `~/.scully/`. Files are regular shell
-scripts which will be `source`d at run time. These scripts can contain
-pretty much anything you like as long as a few environment variables
-are set:
+`scully` reads from an INI-style config file called `~/.scully`. Each
+section of this file corresponds to a single backup.
+
+Each section can contain the following options:
 
 
-* `SCULLY_SRC`
+* `src`
 
-  An array of source directories.
+  A comma-separated list of files and directories to be synced.
 
-* `SCULLY_DEST`
+* `dest`
 
-  A single destination. This can be anything rsync accepts as a
-  destination (e.g. local directory, remote server, etc.)
+  Where the sources should be synced to.
 
-* `SCULLY_EXCLUDE` (optional)
+* `exclude` (optional)
 
-  An array of patterns for rsync to ignore.
+  A comma-separated list of files to be ignored from `src`.
 
-* `SCULLY_REQUIRE_DEST` (optional)
+* `require_dest` (optional, boolean, default: false)
 
-  Fail if the destination does not already exist. set to a non-empty
-  to string to indicate truthiness. This is not very useful for remote
-  destinations.
+  Fail if the destination does not already exist. This is ignored for
+  remote destinations
 
 
 
-EXAMPLES
---------
+EXAMPLE
+-------
 
-    # ~/.scully/documents
-    SCULLY_SRC=(~/Documents)
-    SCULLY_DEST=/mnt/backups/Documents
-    SCULLY_REQUIRE_DEST=True
+    [documents]
+    src = ~/Documents
+    dest = /mnt/backups/Documents
+    require_dest = True
 
-    # ~/.scully/misc
-    SCULLY_SRC=(~/var/log ~/var/mail)
-    SCULLY_DEST=user@example.com:backups/misc
-    SCULLY_EXCLUDE=(~/var/tmp)
+    [misc]
+    src = ~/var/log, ~/var/mail
+    dest = user@example.com:backups/misc
+    exclude = ~/var/tmp
 
-    # ~/.scully/work
-    SCULLY_SRC=~/Work
-    SCULLY_DEST=/mnt/backups/Work
-    SCULLY_EXCLUDE=(~/Work/secret_project)
+    [work]
+    src = ~/Work
+    dest = /mnt/backups/Work
+    exclude = ~/Work/secret_project
