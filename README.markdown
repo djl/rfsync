@@ -1,85 +1,84 @@
-scully
+rfsync
 ------
 
-`scully` keeps your files in sync.
-
-Think of her as the more conservative, skeptical partner of
-[mulder](https://github.com/djl/mulder).
+`rfsync` keeps your files in (r)sync.
 
 
 
 USAGE
 -----
 
-List backups with `scully`:
+List backups with `rfsync`:
 
-    $ scully
+    $ rfsync
     documents
     pictures
     work
 
 
-Run a backup with `scully <backup>`
+Run a backup with `rfsync <backup>`
 
-    $ scully documents
+    $ rfsync documents
 
 
-`scully` will also pass along any options to rsync, allowing dry runs
+`rfsync` will also pass along any options to rsync, allowing dry runs
 and such:
 
     # check what's going to happen
-    $ scully -n documents
+    $ rfsync -n documents
 
     # shhh!
-    $ scully -q documents
+    $ rfsync -q documents
 
     # loudly delete stuff
-    $ scully -v -d documents
+    $ rfsync -v -d documents
 
 
 
 SETUP
 -----
 
-`scully` reads from an INI-style config file called `~/.scully`. Each
-section of this file corresponds to a single backup.
-
-Each section can contain the following options:
-
-
-* `src`
-
-  A comma-separated list of files and directories to be synced.
-
-* `dest`
-
-  Where the sources should be synced to.
-
-* `exclude` (optional)
-
-  A comma-separated list of files to be ignored from `src`.
-
-* `require_dest` (optional, boolean, default: false)
-
-  Fail if the destination does not already exist. This is ignored for
-  remote destinations
+Your backup configs are kept in `~/.rfsync/`. Files are regular shell
+scripts which will be `source`d at run time. These scripts can contain
+pretty much anything you like as long as a few environment variables
+are set:
 
 
+* `SRC`
 
-EXAMPLE
--------
+  An array of source directories.
 
-    [documents]
-    src = ~/Documents
-    dest = /mnt/backups/Documents
-    require_dest = True
+* `DEST`
 
-    [misc]
-    src = ~/var/log, ~/var/mail
-    dest = user@example.com:backups/misc
-    exclude = ~/var/tmp
+  A single destination. This can be anything rsync accepts as a
+  destination (e.g. local directory, remote server, etc.)
 
-    [work]
-    src = ~/Work
-    dest = /mnt/backups/Work
-    exclude = ~/Work/secret_project
+* `EXCLUDE` (optional)
+
+  An array of patterns for rsync to ignore.
+
+* `REQUIRE_DEST` (optional)
+
+  Fail if the destination does not already exist. set to a non-empty
+  to string to indicate truthiness. This is not very useful for remote
+  destinations.
+
+
+
+EXAMPLES
+--------
+
+    # ~/.rfsync/documents
+    SRC=(~/Documents)
+    DEST=/mnt/backups/Documents
+    REQUIRE_DEST=True
+
+    # ~/.rfsync/misc
+    SRC=(~/var/log ~/var/mail)
+    DEST=user@example.com:backups/misc
+    EXCLUDE=(~/var/tmp)
+
+    # ~/.rfsync/work
+    SRC=~/Work
+    DEST=/mnt/backups/Work
+    EXCLUDE=(~/Work/secret_project)

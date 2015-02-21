@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Usage: rfsync [RSYNCOPTS] [<backup>]
+PROGNAME="$(basename $0)"
+BACKUP_DIR="$HOME/.rfsync/"
+
+abort() {
+  echo "$PROGNAME: $1" >&2
+  exit 1
+}
+
+if [ $# -eq 0 ]; then
+  find "$BACKUP_DIR" -type f | xargs basename
+  exit 0
+fi
+
+unset SRC DEST EXCLUDE REQUIRE_DEST
+
+BACKUP="${!#}"
+
+if [ ! -f "$BACKUP_DIR/$BACKUP" ]; then
+  abort "Unknown backup '$BACKUP'"
+fi
+
+source "$BACKUP_DIR/$BACKUP" > /dev/null 2>&1
+
+if [ -n "$EXCLUDE" ]; then
+  exclude=$(printf " --exclude %s" "${EXCLUDE[@]}")
+fi
+
+for d in ${DEST[@]}; do
+  if [ -n "$REQUIRE_DEST" -a ! -d "$d" ]; then
+    abort "Destination directory '$d' not found."
+  fi
+  rsync -a ${@:1:$#-1} ${exclude[@]} ${SRC[@]} $d
+done
