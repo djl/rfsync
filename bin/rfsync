@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Usage: rfsync [RSYNCOPTS] [<backup>]
 PROGNAME="$(basename $0)"
-BACKUP_DIR="$HOME/.rfsync/"
+BACKUP_DIR="$HOME/.config/rfsync/"
 
 abort() {
   echo "$PROGNAME: $1" >&2
