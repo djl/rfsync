@@ -38,10 +38,10 @@ and such:
 SETUP
 -----
 
-Your backup configs are kept in `~/.rfsync/`. Files are regular shell
-scripts which will be `source`d at run time. These scripts can contain
-pretty much anything you like as long as a few environment variables
-are set:
+Your backup configs are kept in `~/.config/rfsync/`. Files are regular
+shell scripts which will be `source`d at run time. These scripts can
+contain pretty much anything you like as long as a few environment
+variables are set:
 
 
 * `SRC`
@@ -68,17 +68,17 @@ are set:
 EXAMPLES
 --------
 
-    # ~/.rfsync/documents
+    # ~/.config/rfsync/documents
     SRC=(~/Documents)
     DEST=/mnt/backups/Documents
     REQUIRE_DEST=True
 
-    # ~/.rfsync/misc
+    # ~/.config/rfsync/misc
     SRC=(~/var/log ~/var/mail)
     DEST=user@example.com:backups/misc
     EXCLUDE=(~/var/tmp)
 
-    # ~/.rfsync/work
+    # ~/.config/rfsync/work
     SRC=~/Work
     DEST=/mnt/backups/Work
     EXCLUDE=(~/Work/secret_project)
