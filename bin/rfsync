@@ -29,7 +29,9 @@ fi
 
 for d in ${DEST[@]}; do
   if [ -n "$REQUIRE_DEST" -a ! -d "$d" ]; then
-    abort "Destination directory '$d' not found."
+    if echo "${d}" | grep -q -E '^\.?/'; then
+      abort "Destination directory '$d' not found."
+    fi
   fi
   rsync -a ${@:1:$#-1} ${exclude[@]} ${SRC[@]} $d
 done
