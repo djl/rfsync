@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Usage: rfsync [RSYNCOPTS] [<backup>]
-PROGNAME="$(basename $0)"
+PROGNAME=$(basename "$0")
 BACKUP_DIR="$HOME/.config/rfsync/"
 
 abort() {
@@ -9,7 +9,7 @@ abort() {
 }
 
 if [ $# -eq 0 ]; then
-  find "$BACKUP_DIR" -type f | xargs basename
+  find "$BACKUP_DIR" -type f -print0 | xargs -0 -n1 basename
   exit 0
 fi
 
@@ -24,14 +24,14 @@ fi
 source "$BACKUP_DIR/$BACKUP" > /dev/null 2>&1
 
 if [ -n "$EXCLUDE" ]; then
-  exclude=$(printf " --exclude %s" "${EXCLUDE[@]}")
+  excluded=$(printf " --exclude %s" "${EXCLUDE[@]}")
 fi
 
-for d in ${DEST[@]}; do
-  if [ -n "$REQUIRE_DEST" -a ! -d "$d" ]; then
+for d in "${DEST[@]}"; do
+  if [ -n "$REQUIRE_DEST" ] && [ ! -d "$d" ]; then
     if echo "${d}" | grep -q -E '^\.?/'; then
       abort "Destination directory '$d' not found."
     fi
   fi
-  rsync -a ${@:1:$#-1} ${exclude[@]} ${SRC[@]} $d
+  rsync -a "${@:1:$#-1}" "${excluded[@]}" "${SRC[@]}" "$d"
 done
