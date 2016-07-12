@@ -63,6 +63,12 @@ variables are set:
   to string to indicate truthiness. This is not very useful for remote
   destinations.
 
+* `RSYNC_ARGS` (optional)
+
+  An array of arguments to pass onto `rsync`. These are passed before
+  any other arguments given on the command line when invoking `rfsync`
+  itself.
+
 
 
 EXAMPLES

@@ -13,7 +13,7 @@ if [ $# -eq 0 ]; then
   exit 0
 fi
 
-unset SRC DEST EXCLUDE REQUIRE_DEST
+unset SRC DEST EXCLUDE REQUIRE_DEST RSYNC_ARGS
 
 BACKUP="${!#}"
 
@@ -33,5 +33,5 @@ for d in "${DEST[@]}"; do
       abort "Destination directory '$d' not found."
     fi
   fi
-  rsync -a "${@:1:$#-1}" "${excluded[@]}" "${SRC[@]}" "$d"
+  rsync -a "${excluded[@]}" "${@:1:$#-1}" "${RSYNC_ARGS[@]}" "${SRC[@]}" "$d"
 done
