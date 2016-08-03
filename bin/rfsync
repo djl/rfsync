@@ -23,8 +23,9 @@ fi
 
 source "$BACKUP_DIR/$BACKUP" > /dev/null 2>&1
 
+excluded=()
 if [ -n "$EXCLUDE" ]; then
-  excluded=$(printf " --exclude %s" "${EXCLUDE[@]}")
+  excluded+=($(printf " --exclude %s" "${EXCLUDE[@]}"))
 fi
 
 for d in "${DEST[@]}"; do
@@ -33,5 +34,5 @@ for d in "${DEST[@]}"; do
       abort "Destination directory '$d' not found."
     fi
   fi
-  rsync -a "${excluded[@]}" "${@:1:$#-1}" "${RSYNC_ARGS[@]}" "${SRC[@]}" "$d"
+  rsync -a ${excluded[@]} "${@:1:$#-1}" "${RSYNC_ARGS[@]}" "${SRC[@]}" "$d"
 done
